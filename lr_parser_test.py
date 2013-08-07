@@ -2,18 +2,19 @@
 import itertools
 import unittest
 
+import grammar
 import lr_parser
 
 
 class LrParserTest(unittest.TestCase):
     def _create_grammar(self):
         # The small grammar from Wikipedia.
-        gE = lr_parser.NonTerminal('E')
-        gStar = lr_parser.Terminal('*')
-        gB = lr_parser.NonTerminal('B')
-        gPlus = lr_parser.Terminal('+')
-        gZero = lr_parser.Terminal('0')
-        gOne = lr_parser.Terminal('1')
+        gE = grammar.NonTerminal('E')
+        gStar = grammar.Terminal('*')
+        gB = grammar.NonTerminal('B')
+        gPlus = grammar.Terminal('+')
+        gZero = grammar.Terminal('0')
+        gOne = grammar.Terminal('1')
 
         self.gE = gE
         self.gStar = gStar
