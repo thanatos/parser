@@ -5,29 +5,6 @@ import collections
 import grammar as _grammar
 
 
-class Production(object):
-    def __init__(self, non_terminal, production):
-        self.non_terminal = non_terminal
-        self.produces = tuple(production)
-
-    def __str__(self):
-        return '{0} ::= {1}'.format(
-            self.non_terminal,
-            ' '.join(str(i) for i in self.produces))
-
-    def __repr__(self):
-        return '{}.{}({!r}, {!r})'.format(
-                self.__module__, type(self).__name__,
-                self.non_terminal, self.produces)
-
-    def __eq__(self, other):
-        return (self.non_terminal == other.non_terminal
-                and self.produces == other.produces)
-
-    def __hash__(self):
-        return hash((self.non_terminal, self.produces))
-
-
 class Item(object):
     def __init__(self, rule, parse_position):
         self.rule = rule
@@ -92,7 +69,7 @@ class Grammar(object):
                     production.non_terminal, []).append(production)
 
         self._starting_symbol = _grammar.NonTerminal('S')
-        self._starting_production = Production(
+        self._starting_production = _grammar.Production(
                 self._starting_symbol, [starting_symbol])
         self._indexed_productions[self._starting_symbol] = (
             self._starting_production)

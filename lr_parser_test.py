@@ -31,7 +31,7 @@ class LrParserTest(unittest.TestCase):
             (gB, (gOne,)),
         ]
         self.rules = list(
-            itertools.starmap(lr_parser.Production, self.rules))
+            itertools.starmap(grammar.Production, self.rules))
 
         self.grammar = lr_parser.Grammar(self.rules, gE)
 
@@ -41,9 +41,9 @@ class LrParserTest(unittest.TestCase):
         productions = self.grammar.productions_of(self.gE)
         self.assertCountEqual(
             [
-                lr_parser.Production(self.gE, (self.gE, self.gStar, self.gB)),
-                lr_parser.Production(self.gE, (self.gE, self.gPlus, self.gB)),
-                lr_parser.Production(self.gE, (self.gB,)),
+                grammar.Production(self.gE, (self.gE, self.gStar, self.gB)),
+                grammar.Production(self.gE, (self.gE, self.gPlus, self.gB)),
+                grammar.Production(self.gE, (self.gB,)),
             ],
             productions)
 
@@ -53,8 +53,8 @@ class LrParserTest(unittest.TestCase):
         gE = self.gE
         gStar = self.gStar
         gB = self.gB
-        production1 = lr_parser.Production(gE, (gE, gStar, gB))
-        production2 = lr_parser.Production(gE, (gE, gStar, gB))
+        production1 = grammar.Production(gE, (gE, gStar, gB))
+        production2 = grammar.Production(gE, (gE, gStar, gB))
         self.assertIsNot(production1, production2)
         self.assertEqual(production1, production2)
         self.assertEqual(hash(production1), hash(production2))
@@ -65,7 +65,7 @@ class LrParserTest(unittest.TestCase):
         gE = self.gE
         gStar = self.gStar
         gB = self.gB
-        production = lr_parser.Production(gE, (gE, gStar, gB))
+        production = grammar.Production(gE, (gE, gStar, gB))
         item = lr_parser.Item(production, 2)
         self.assertEqual(gB, item.expecting_symbol)
 
@@ -86,7 +86,7 @@ class LrParserTest(unittest.TestCase):
         gE = self.gE
         gStar = self.gStar
         gB = self.gB
-        production = lr_parser.Production(gE, (gE, gStar, gB))
+        production = grammar.Production(gE, (gE, gStar, gB))
         item = lr_parser.Item(production, 2)
         # Just check that it doesn't raise.
         str(item)
@@ -114,7 +114,7 @@ class LrParserTest(unittest.TestCase):
             closed_item_set, self.grammar)
 
         Item = lr_parser.Item
-        Production = lr_parser.Production
+        Production = grammar.Production
 
         expected_output = {
             self.gZero: {
