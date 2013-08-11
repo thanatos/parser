@@ -6,45 +6,47 @@ import grammar as _grammar
 
 
 class Item(object):
-    def __init__(self, rule, parse_position):
-        self.rule = rule
+    def __init__(self, production, parse_position):
+        self.production = production
         self.parse_position = parse_position
 
     def __eq__(self, other):
-        return (self.rule == other.rule
-                and self.parse_position == other.parse_position)
+        return (
+            self.production == other.production
+            and self.parse_position == other.parse_position)
 
     def __hash__(self):
-        return hash((self.rule, self.parse_position))
+        return hash((self.production, self.parse_position))
 
     def __repr__(self):
-        return 'Item({0!r}), {1!r})'.format(self.rule, self.parse_position)
+        return 'Item({0!r}), {1!r})'.format(
+            self.production, self.parse_position)
 
     def __str__(self):
-        before_point = self.rule.produces[:self.parse_position]
-        after_point = self.rule.produces[self.parse_position:]
+        before_point = self.production.produces[:self.parse_position]
+        after_point = self.production.produces[self.parse_position:]
         produce_str = []
         produce_str.extend(str(s) for s in before_point)
         produce_str.append('@')
         produce_str.extend(str(s) for s in after_point)
         produce_str = ' '.join(produce_str)
 
-        return '{0} -> {1}'.format(
-            self.rule.non_terminal,
+        return '{0} ::= {1}'.format(
+            self.production.non_terminal,
             produce_str)
 
     @property
     def expecting_symbol(self):
-        if self.parse_position >= len(self.rule.produces):
+        if self.parse_position >= len(self.production.produces):
             return None
-        return self.rule.produces[self.parse_position]
+        return self.production.produces[self.parse_position]
 
     def advance(self):
-        if self.parse_position >= len(self.rule.produces):
+        if self.parse_position >= len(self.production.produces):
             raise ValueError(
                 'Can\'t advance item: Parser position already at end of'
                 ' production.')
-        return Item(self.rule, self.parse_position + 1)
+        return Item(self.production, self.parse_position + 1)
 
 
 class Grammar(object):
@@ -54,8 +56,8 @@ class Grammar(object):
     that S → starting_symbol, to help the parser determine when it has
     accepted input.
 
-    :param rules: The productions of the grammar.
-    :type rules: iterable of Production objects
+    :param productions: The productions of the grammar.
+    :type productions: iterable of Production objects
     :param starting_symbol: The "starting" symbol of the grammar. The
         represents a state at which the parser may conclude parsing, and
         have parse tree which is a valid parse of the grammar.
@@ -90,7 +92,7 @@ def closure(item_set, grammar):
     """Return the closure of an item set.
 
     The closure of an item set is the item set where any items with the parse
-    position at a non-terminal have any corresponding production rules for that
+    position at a non-terminal have any corresponding productions for that
     non-terminal in the item set as well.
 
     E.g., if we have the item:
