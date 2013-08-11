@@ -23,8 +23,7 @@ class Terminal(object):
             return '?{}?'.format(self.name.replace('?', '??'))
 
     def __repr__(self):
-        return '{}.{}({!r})'.format(
-                self.__module__, type(self).__name__, self.name)
+        return '<Terminal {}>'.format(self)
 
 
 class NonTerminal(object):
@@ -38,9 +37,7 @@ class NonTerminal(object):
         return '<{0}>'.format(visual_name)
 
     def __repr__(self):
-        return '{}.{}({!r})'.format(
-                self.__module__, type(self).__name__,
-                self.name)
+        return '<NonTerminal {}>'.format(self)
 
 
 class Production(object):
