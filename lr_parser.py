@@ -19,7 +19,7 @@ class Item(object):
         return hash((self.production, self.parse_position))
 
     def __repr__(self):
-        return 'Item({0!r}), {1!r})'.format(
+        return 'Item({0!r}, {1!r})'.format(
             self.production, self.parse_position)
 
     def __str__(self):
