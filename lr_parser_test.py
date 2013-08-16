@@ -27,6 +27,8 @@ def _create_grammar():
         ]
         PRODUCTIONS = list(itertools.starmap(grammar.Production, PRODUCTIONS))
         PRODUCTION_E_E_STAR_B = PRODUCTIONS[0]
+        PRODUCTION_E_E_PLUS_B = PRODUCTIONS[1]
+        PRODUCTION_E_B = PRODUCTIONS[2]
 
     return WikipediaGrammar
 
@@ -73,6 +75,34 @@ class ItemTest(unittest.TestCase):
         item_b = item_a.advance()
         self.assertEqual(2, item_b.parse_position)
         self.assertEqual(item_a.production, item_b.production)
+
+
+class GrammarTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(GrammarTest, cls).setUpClass()
+        cls.GRAMMAR = _create_grammar()
+
+    def test_grammar(self):
+        augmented_grammar = lr_parser.Grammar(
+            self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
+        self.assertIsInstance(
+            augmented_grammar.starting_symbol, grammar.NonTerminal)
+        self.assertIsInstance(
+            augmented_grammar.starting_production, grammar.Production)
+        self.assertEqual(
+            augmented_grammar.starting_production.non_terminal,
+            augmented_grammar.starting_symbol)
+        self.assertEqual(
+            (self.GRAMMAR.E,), augmented_grammar.starting_production.produces)
+
+        self.assertCountEqual(
+            [
+                self.GRAMMAR.PRODUCTION_E_E_STAR_B,
+                self.GRAMMAR.PRODUCTION_E_E_PLUS_B,
+                self.GRAMMAR.PRODUCTION_E_B,
+            ],
+            augmented_grammar.productions_of(self.GRAMMAR.E))
 
 
 class LrParserTest(unittest.TestCase):
