@@ -76,6 +76,11 @@ class ItemTest(unittest.TestCase):
         self.assertEqual(2, item_b.parse_position)
         self.assertEqual(item_a.production, item_b.production)
 
+        item_c = item_b.advance()
+        # Item C is E → E * B•, and thus can't be advanced further.
+        with self.assertRaises(ValueError):
+            item_c.advance()
+
 
 class GrammarTest(unittest.TestCase):
     @classmethod
