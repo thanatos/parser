@@ -106,137 +106,61 @@ class GrammarTest(unittest.TestCase):
 
 
 class LrParserTest(unittest.TestCase):
-    def _create_grammar(self):
-        # The small grammar from Wikipedia.
-        gE = grammar.NonTerminal('E')
-        gStar = grammar.Terminal('*')
-        gB = grammar.NonTerminal('B')
-        gPlus = grammar.Terminal('+')
-        gZero = grammar.Terminal('0')
-        gOne = grammar.Terminal('1')
-
-        self.gE = gE
-        self.gStar = gStar
-        self.gB = gB
-        self.gPlus = gPlus
-        self.gZero = gZero
-        self.gOne = gOne
-
-        self.rules = [
-            (gE, (gE, gStar, gB)),
-            (gE, (gE, gPlus, gB)),
-            (gE, (gB,)),
-            (gB, (gZero,)),
-            (gB, (gOne,)),
-        ]
-        self.rules = list(
-            itertools.starmap(grammar.Production, self.rules))
-
-        self.grammar = lr_parser.Grammar(self.rules, gE)
-
-    def test_create_grammar(self):
-        self._create_grammar()
-
-        productions = self.grammar.productions_of(self.gE)
-        self.assertCountEqual(
-            [
-                grammar.Production(self.gE, (self.gE, self.gStar, self.gB)),
-                grammar.Production(self.gE, (self.gE, self.gPlus, self.gB)),
-                grammar.Production(self.gE, (self.gB,)),
-            ],
-            productions)
-
-    def test_production(self):
-        self._create_grammar()
-
-        gE = self.gE
-        gStar = self.gStar
-        gB = self.gB
-        production1 = grammar.Production(gE, (gE, gStar, gB))
-        production2 = grammar.Production(gE, (gE, gStar, gB))
-        self.assertIsNot(production1, production2)
-        self.assertEqual(production1, production2)
-        self.assertEqual(hash(production1), hash(production2))
-
-    def test_item(self):
-        self._create_grammar()
-
-        gE = self.gE
-        gStar = self.gStar
-        gB = self.gB
-        production = grammar.Production(gE, (gE, gStar, gB))
-        item = lr_parser.Item(production, 2)
-        self.assertEqual(gB, item.expecting_symbol)
-
-        item = item.advance()
-        self.assertEqual(3, item.parse_position)
-        self.assertEqual(None, item.expecting_symbol)
-
-        with self.assertRaises(ValueError) as cm:
-            item.advance()
-        self.assertRegex(
-            cm.exception.args[0],
-            'Can\'t advance item:'
-            ' Parser position already at end of production.')
-
-    def test_item_str(self):
-        self._create_grammar()
-
-        gE = self.gE
-        gStar = self.gStar
-        gB = self.gB
-        production = grammar.Production(gE, (gE, gStar, gB))
-        item = lr_parser.Item(production, 2)
-        # Just check that it doesn't raise.
-        str(item)
+    @classmethod
+    def setUpClass(cls):
+        cls.GRAMMAR = _create_grammar()
 
     def test_closure(self):
-        self._create_grammar()
+        itemset = (lr_parser.Item(self.GRAMMAR.PRODUCTION_E_E_STAR_B, 0),)
 
-        itemset = (lr_parser.Item(self.rules[0], 0),)
+        augmented_grammar = lr_parser.Grammar(
+            self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
+        closed_itemset = lr_parser.closure(itemset, augmented_grammar)
 
-        closed_itemset = lr_parser.closure(itemset, self.grammar)
-
-        expected_itemset = [lr_parser.Item(rule, 0) for rule in self.rules]
+        expected_itemset = [
+            lr_parser.Item(production, 0)
+            for production in self.GRAMMAR.PRODUCTIONS]
         # Even if they're all wrong, it's okay.
         self.maxDiff = None
         self.assertCountEqual(expected_itemset, closed_itemset)
 
     def test_construct_transition(self):
-        self._create_grammar()
-
+        augmented_grammar = lr_parser.Grammar(
+            self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
         closed_item_set = lr_parser.closure(
-            (lr_parser.Item(self.grammar.starting_production, 0),),
-            self.grammar)
+            (lr_parser.Item(augmented_grammar.starting_production, 0),),
+            augmented_grammar)
 
         transitions = lr_parser.construct_transition(
-            closed_item_set, self.grammar)
+            closed_item_set, augmented_grammar)
 
         Item = lr_parser.Item
         Production = grammar.Production
+        g = self.GRAMMAR
 
         expected_output = {
-            self.gZero: {
-                Item(Production(self.gB, (self.gZero,)), 1),
+            g.ZERO: {
+                Item(Production(g.B, (g.ZERO,)), 1),
             },
-            self.gOne: {
-                Item(Production(self.gB, (self.gOne,)), 1),
+            g.ONE: {
+                Item(Production(g.B, (g.ONE,)), 1),
             },
-            self.gE: {
-                Item(self.grammar.starting_production, 1),
-                Item(Production(self.gE, (self.gE, self.gStar, self.gB)), 1),
-                Item(Production(self.gE, (self.gE, self.gPlus, self.gB)), 1),
+            g.E: {
+                Item(augmented_grammar.starting_production, 1),
+                Item(Production(g.E, (g.E, g.STAR, g.B)), 1),
+                Item(Production(g.E, (g.E, g.PLUS, g.B)), 1),
             },
-            self.gB: {
-                Item(Production(self.gE, (self.gB,)), 1),
+            g.B: {
+                Item(Production(g.E, (g.B,)), 1),
             }
         }
         self.maxDiff = None
         self.assertEqual(expected_output, transitions)
 
     def test_construct_all_transitions(self):
-        self._create_grammar()
-        output = lr_parser.construct_all_transitions(self.grammar)
+        augmented_grammar = lr_parser.Grammar(
+            self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
+        output = lr_parser.construct_all_transitions(augmented_grammar)
         for item_set, transitions in output.items():
             print('Item set:')
             for item in item_set:
