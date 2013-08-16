@@ -170,15 +170,89 @@ class LrParserTest(unittest.TestCase):
         self.assertEqual(expected_output, transitions)
 
     def test_construct_all_transitions(self):
+        # Very similar to construct_transition, except we explore all possible
+        # transitions, instead of just a single step.
         augmented_grammar = lr_parser.Grammar(
             self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
-        output = lr_parser.construct_all_transitions(augmented_grammar)
-        for item_set, transitions in output.items():
-            print('Item set:')
-            for item in item_set:
-                print(item)
-        import pprint
-        pprint.pprint(output)
+
+        transitions = lr_parser.construct_all_transitions(augmented_grammar)
+
+        Item = lr_parser.Item
+        Production = grammar.Production
+        g = self.GRAMMAR
+
+        # The output maps an item set to a transition table. The transition
+        # table itself is a mapping from "consumed symbol" to new itemset.
+        # We're going to name the item sets to make managing this (rather
+        # large) output simpler.
+        state_large_start = frozenset({
+            Item(augmented_grammar.starting_production, 0),
+            Item(Production(g.E, (g.E, g.STAR, g.B)), 0),
+            Item(Production(g.E, (g.E, g.PLUS, g.B)), 0),
+            Item(Production(g.E, (g.B,)), 0),
+            Item(Production(g.B, (g.ZERO,)), 0),
+            Item(Production(g.B, (g.ONE,)), 0),
+        })
+        state_finish_zero = frozenset({
+            Item(Production(g.B, (g.ZERO,)), 1),
+        })
+        state_finish_one = frozenset({
+            Item(Production(g.B, (g.ONE,)), 1),
+        })
+        state_finish_e = frozenset({
+            Item(augmented_grammar.starting_production, 1),
+            Item(Production(g.E, (g.E, g.STAR, g.B)), 1),
+            Item(Production(g.E, (g.E, g.PLUS, g.B)), 1),
+        })
+        state_finish_b = frozenset({
+            Item(Production(g.E, (g.B,)), 1),
+        })
+        state_finish_star = frozenset({
+            Item(Production(g.E, (g.E, g.STAR, g.B)), 2),
+            Item(Production(g.B, (g.ZERO,)), 0),
+            Item(Production(g.B, (g.ONE,)), 0),
+        })
+        state_finish_plus = frozenset({
+            Item(Production(g.E, (g.E, g.PLUS, g.B)), 2),
+            Item(Production(g.B, (g.ZERO,)), 0),
+            Item(Production(g.B, (g.ONE,)), 0),
+        })
+        state_finish_e_star_b = frozenset({
+            Item(Production(g.E, (g.E, g.STAR, g.B)), 3),
+        })
+        state_finish_e_plus_b = frozenset({
+            Item(Production(g.E, (g.E, g.PLUS, g.B)), 3),
+        })
+
+        expected_output = {
+            state_large_start: {
+                g.ZERO: state_finish_zero,
+                g.ONE: state_finish_one,
+                g.E: state_finish_e,
+                g.B: state_finish_b,
+            },
+            state_finish_zero: {},
+            state_finish_one: {},
+            state_finish_e: {
+                g.STAR: state_finish_star,
+                g.PLUS: state_finish_plus,
+            },
+            state_finish_b: {},
+            state_finish_star: {
+                g.ZERO: state_finish_zero,
+                g.ONE: state_finish_one,
+                g.B: state_finish_e_star_b,
+            },
+            state_finish_plus: {
+                g.ZERO: state_finish_zero,
+                g.ONE: state_finish_one,
+                g.B: state_finish_e_plus_b,
+            },
+            state_finish_e_star_b: {},
+            state_finish_e_plus_b: {},
+        }
+        self.maxDiff = None
+        self.assertEqual(expected_output, transitions)
 
 
 if __name__ == '__main__':
