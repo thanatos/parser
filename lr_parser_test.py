@@ -127,10 +127,20 @@ class LrParserTest(unittest.TestCase):
     def test_construct_transition(self):
         augmented_grammar = lr_parser.Grammar(
             self.GRAMMAR.PRODUCTIONS, self.GRAMMAR.E)
+        # Start with Just the item S → •E. Closing this,
         closed_item_set = lr_parser.closure(
             (lr_parser.Item(augmented_grammar.starting_production, 0),),
             augmented_grammar)
+        # we get the item set:
+        # S → •E
+        # E → •E * B
+        # E → •E + B
+        # E → •B
+        # E → •0
+        # E → •1
 
+        # Now we construct the transitions. If we move some symbol X, what
+        # state (item set) is the parser now in?
         transitions = lr_parser.construct_transition(
             closed_item_set, augmented_grammar)
 
@@ -138,6 +148,8 @@ class LrParserTest(unittest.TestCase):
         Production = grammar.Production
         g = self.GRAMMAR
 
+        # The output from construct_transition maps the symbol we
+        # consumed/parsed to the new state (or item set) we will be in.
         expected_output = {
             g.ZERO: {
                 Item(Production(g.B, (g.ZERO,)), 1),
